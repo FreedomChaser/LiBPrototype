@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>LoveInBeta Prototype</title>
+
+  <style>
+
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #e0e0e0; }
+
+    .phone-frame {
+
+      position: relative;
+
+      width: 375px;
+
+      height: 812px;
+
+      background: #fff;
+
+      display: flex;
+
+      flex-direction: column;
+
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+
+      border-radius: 30px;
+
+      overflow: hidden;
+
+    }
+
+    #header {
+
+      background: #007bff;
+
+      color: white;
+
+      padding: 15px;
+
+      text-align: center;
+
+      font-size: 20px;
+
+      font-weight: bold;
+
+    }
+
+    #chat-with {
+
+    background: #f0f0f0;
+
+    color: #333;
+
+    padding: 10px;
+
+    text-align: center;
+
+    font-size: 16px;
+
+    border-bottom: 1px solid #ccc;
+
+  }
+
+    #chat-container {
+
+      flex: 1;
+
+      padding: 10px;
+
+      overflow-y: auto;
+
+      background: #f5f5f5;
+
+      display: flex;
+
+      flex-direction: column;
+
+    }
+
+    .message {
+
+      margin: 10px 0;
+
+      padding: 10px;
+
+      border-radius: 10px;
+
+      max-width: 70%;
+
+      word-wrap: break-word;
+
+    }
+
+    .user-a {
+
+      background: #d1e7ff;
+
+      align-self: flex-start;
+
+    }
+
+    .user-b {
+
+      background: #ffe0e0;
+
+      align-self: flex-end;
+
+    }
+
+    #input-area {
+
+      display: flex;
+
+      flex-direction: column;
+
+      padding: 10px;
+
+      background: #fff;
+
+      border-top: 1px solid #ccc;
+
+    }
+
+    #button-bar {
+
+      display: flex;
+
+      gap: 10px;
+
+      margin-bottom: 10px;
+
+    }
+
+    .action-btn {
+
+      flex: 1;
+
+      padding: 8px;
+
+      background: #eee;
+
+      border: none;
+
+      border-radius: 5px;
+
+      cursor: pointer;
+
+    }
+
+    .action-btn:hover {
+
+      background: #ddd;
+
+    }
+
+    #message-box {
+
+      display: flex;
+
+    }
+
+    #message-input {
+
+      flex: 1;
+
+      padding: 8px;
+
+      border: 1px solid #ccc;
+
+      border-radius: 5px;
+
+    }
+
+    #send-btn {
+
+      padding: 8px 12px;
+
+      margin-left: 10px;
+
+      border: none;
+
+      background: #007bff;
+
+      color: white;
+
+      border-radius: 5px;
+
+      cursor: pointer;
+
+    }
+
+    #send-btn:hover {
+
+      background: #0056b3;
+
+    }
+
+    /* Modal styling */
+
+    #modal-overlay {
+
+      display: none;
+
+      position: absolute;
+
+      bottom: 0;
+
+      left: 0;
+
+      width: 95%;
+
+      height: 35%;
+
+      background: rgba(255, 255, 255, 0.98);
+
+      border-top: 2px solid #ccc;
+
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+
+      overflow-y: auto;
+
+      padding: 15px;
+
+      padding-right: 40px;
+
+      z-index: 1000;
+
+    }
+
+    #modal-close {
+
+      float: right;
+
+      cursor: pointer;
+
+      font-weight: bold;
+
+      margin-bottom: 10px;
+
+    }
+
+  </style>
+
+  <div>
+
+   
+
+  </div>
+
+</head>
+
+<body>
+
+<div class="phone-frame">
+
+    <div id="header">LoveInBeta</div>
+
+    <div id="chat-with">Chat with User B</div>
+
+  <div id="chat-container"></div>
+
+  <div id="input-area">
+
+    <div id="button-bar">
+
+      <button class="action-btn" onclick="loadJson('dateSuggestions')">Date Suggestions</button>
+
+      <button class="action-btn" onclick="loadJson('funQuestions')">Fun Questions</button>
+
+      <button class="action-btn" onclick="loadJson('virtualGames')">Play a Virtual Game</button>
+
+    </div>
+
+    <div id="message-box">
+
+      <textarea type="text" id="message-input" placeholder="Type a message..."></textarea>
+
+      <button id="send-btn" onclick="sendMessage()">Send</button>
+
+    </div>
+
+  </div>
+
+  <div id="modal-overlay">
+
+    <span id="modal-close" onclick="closeModal()">&times;</span>
+
+    <div id="modal-content"></div>
+
+  </div>
+
+</div>
+
+<script>
+
+  const chatContainer = document.getElementById('chat-container');
+
+  const messageInput = document.getElementById('message-input');
+
+ 
+
+  function sendMessage() {
+
+    const text = messageInput.value.trim();
+
+    if (text === '') return;
+
+    appendMessage(text, 'user-a');
+
+    messageInput.value = '';
+
+ 
+
+    setTimeout(() => {
+
+      appendMessage("Response", 'user-b');
+
+    }, 500);
+
+  }
+
+ 
+
+  messageInput.addEventListener('keydown', function(event) {
+
+    if (event.key === 'Enter' && !event.shiftKey) {
+
+      event.preventDefault();
+
+      sendMessage();
+
+    }
+
+  });
+
+ 
+
+  function appendMessage(text, userClass) {
+
+    const msg = document.createElement('div');
+
+    msg.classList.add('message', userClass);
+
+    msg.textContent = text;
+
+    chatContainer.appendChild(msg);
+
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+  }
+
+ 
+
+  function loadJson(type) {
+
+    const cannedResponses = {
+
+      dateSuggestions: [
+
+        "Here are some fun date ideas based on both your profiles: Would you like help crafting an invitation for user b to one of these based on your chat history?",
+
+        "1. You both are foodies, how about a cooking class at Local Cooking class?",
+
+        "2. You both enjoy the outdoors. The local park has a great walking trail and picnic area.",
+
+        "3. You both like Picaso, there's a Picaso exhibit at local art gallery."
+
+      ],
+
+      funQuestions: [
+
+        "If you could have dinner with any historical figure, who would it be? Why?",
+
+        "What’s the most adventurous thing you’ve ever done?",
+
+        "What’s your most unusual talent?",
+
+        "What's something you've always wanted to try but haven't yet?"
+
+      ],
+
+      virtualGames: [
+
+        "Want to invite them to an interactive icebreaker game?",
+
+        "1. Two truths and a lie - sharades edition!",
+
+        "2. How about a virtual escape room?",
+
+        "3. Would you like to play a game of Speed Sketch?"
+
+      ]
+
+    };
+
+ 
+
+    const rewordedResponses = {
+
+      "1. You both are foodies, how about a cooking class at Local Cooking class?": "It seems like we're both foodies, I know a great place that has cooking classes. Want to join me at one?",
+
+      "2. You both enjoy the outdoors. The local park has a great walking trail and picnic area.": "We both love the outdoors. How about a walk and picnic at the local park?",
+
+      "3. You both like Picaso, there's a Picaso exhibit at local art gallery.": "We both appreciate art. There's a Picasso exhibit at the local gallery. Want to check it out?",
+
+      "If you could have dinner with any historical figure, who would it be? Why?": "If you could have dinner with any historical figure, who would it be and why?",
+
+      "What’s the most adventurous thing you’ve ever done?": "What's the most adventurous thing you've ever done?",
+
+      "What’s your most unusual talent?": "What's your most unusual talent?",
+
+      "What's something you've always wanted to try but haven't yet?": "What's something you've always wanted to try but haven't yet?",
+
+      "1. Two truths and a lie - sharades edition!": "How about we play 'Two truths and a lie' - charades edition?",
+
+      "2. How about a virtual escape room?": "Would you like to try a virtual escape room?",
+
+      "3. Would you like to play a game of Speed Sketch?": "How about a game of Speed Sketch?"
+
+    };
+
+ 
+
+    const modalContent = document.getElementById('modal-content');
+
+    modalContent.innerHTML = '';
+
+    const list = cannedResponses[type] || [];
+
+    list.forEach(msg => {
+
+      const p = document.createElement('p');
+
+      p.textContent = msg;
+
+      p.style.cursor = 'pointer';
+
+      p.onclick = () => {
+
+        const input = document.getElementById('message-input');
+
+        input.value = rewordedResponses[msg] || msg;
+
+        //input.style.height = '40px';
+
+        closeModal();
+
+      };
+
+      modalContent.appendChild(p);
+
+    });
+
+    document.getElementById('modal-overlay').style.display = 'block';
+
+  }
+
+ 
+
+  function closeModal() {
+
+    document.getElementById('modal-overlay').style.display = 'none';
+
+  }
+
+</script>
+
+</body>
+
+</html>
